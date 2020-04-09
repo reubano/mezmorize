@@ -12,6 +12,7 @@ from pathlib import Path
 from subprocess import call, DEVNULL
 from copy import copy
 from pickle import DEFAULT_PROTOCOL
+from functools import wraps
 
 try:
     import pylibmc
@@ -208,3 +209,33 @@ def decode(word):
         decoded = word
 
     return decoded
+
+
+def hashable(obj):
+    try:
+        items = frozenset((k, hashable(v)) for k, v in obj.iteritems())
+    except TypeError:
+        items = tuple(hashable(item) for item in obj)
+    except AttributeError:
+        items = obj
+
+    return items
+
+
+# https://stackoverflow.com/questions/11815873
+def simple_memoize(func):
+    seen = {}
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        hashed = hashable(args[0])
+
+        if hashed in seen:
+            new_piece = seen[hashed]
+        else:
+            new_piece = func(*args, **kwargs)
+            seen.update({hashed: new_piece})
+
+        return new_piece
+
+    return wrapper
