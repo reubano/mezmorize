@@ -8,8 +8,10 @@
     Provides mezmorize utility functions
 """
 from os import getenv, path as p
+from pathlib import Path
 from subprocess import call, DEVNULL
 from copy import copy
+from pickle import DEFAULT_PROTOCOL
 
 try:
     import pylibmc
@@ -31,7 +33,9 @@ try:
 except ImportError:
     redis = None
 
-DEF_CACHE_DIR = p.join(p.abspath(p.dirname(__file__)), 'cache')
+BASEDIR = p.dirname(__file__)
+DEF_CACHE_DIR = Path(BASEDIR).joinpath('cache', f"pickle_v{DEFAULT_PROTOCOL}")
+
 DEF_THRESHOLD = 500
 DEF_DEFAULT_TIMEOUT = 300
 DEF_MC_HOST = DEF_REDIS_HOST = 'localhost'
