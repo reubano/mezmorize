@@ -1,4 +1,5 @@
 *.py[cod]
+.DS_Store
 .cookiecutter
 .ipynb_checkpoints/*
 examples/.ipynb_checkpoints/*
