@@ -574,6 +574,8 @@ def get_cache(*args, **kwargs):
         cache_default_timeout (int): Number of seconds to store cache result if
             `timeout` is not set.
 
+        self_signed_certs (bool): Allow self-signed certificates.
+
     Returns:
         decorator: an iterator of items
 
@@ -622,7 +624,7 @@ def get_cache(*args, **kwargs):
     namespace = kwargs.get('namespace')
     whitelist = {
         'cache_default_timeout', 'cache_threshold', 'cache_options',
-        'cache_key_prefix'}
+        'cache_key_prefix', 'self_signed_certs'}
 
     ckwargs = {k.upper(): v for k, v in kwargs.items() if k in whitelist}
 

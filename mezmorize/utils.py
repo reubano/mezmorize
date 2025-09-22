@@ -126,11 +126,15 @@ def get_cache_type(cache=None, spread=False, cache_dir=CACHE_DIR, **kwargs):
     return cache_type
 
 
-def get_cache_config(cache_type, db=None, **kwargs):
+def get_cache_config(cache_type, db=None, SELF_SIGNED_CERTS=False, **kwargs):
     config = copy(CACHE_CONFIGS[cache_type])
     redis_url = config.get('CACHE_REDIS_URL')
 
-    if db and redis_url:
+    if redis_url and SELF_SIGNED_CERTS:
+        # https://stackoverflow.com/q/65042551/408556
+        redis_url += '?ssl_cert_reqs=none'
+
+    if redis_url and db:
         config['CACHE_REDIS_URL'] = '{}/{}'.format(redis_url, db)
 
     options = {k: v for k, v in kwargs.items() if v is not None}
