@@ -1,0 +1,84 @@
+[project]
+name = "mezmorize"
+requires-python = ">=3.10.14"
+authors = [
+  {name = "Reuben Cummings", email = "reubano@gmail.com"}
+]
+maintainers = [
+  {name = "Reuben Cummings", email = "reubano@gmail.com"}
+]
+description = "Adds function memoization support"
+readme = "README.md"
+license = "BSD-3-Clause"
+license-files = ["LICENSE*"]
+keywords = ["memoize", "memoization", "Flask-Cache", "cache"]
+classifiers=[
+    "Development Status :: 4 - Beta",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Environment :: Console",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+]
+dynamic = ["dependencies", "optional-dependencies", "version"]
+
+[project.scripts]
+manage = "manage:manager"
+
+[project.urls]
+repository = "https://github.com/reubano/mezmorize"
+download = "https://github.com/reubano/mezmorize/archive/refs/heads/master.zip"
+bugtracker = "https://github.com/reubano/mezmorize/issues"
+
+[tool.pyright]
+exclude = [
+    "**/pycache",
+    ".cache",
+    ".ruff_cache",
+    "tmp",
+    "./build/*",
+    "./dist/*",
+    "./.tox/*"
+]
+
+venvPath = "../../../.virtualenvs"
+venv = "mezmorize"
+
+[tool.ruff]
+extend-include = ["manage.py"]
+
+[tool.setuptools]
+packages = ["mezmorize"]
+py-modules = ["manage"]
+
+[tool.setuptools.dynamic]
+version = {attr = "mezmorize.__version__"}
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.dynamic.optional-dependencies]
+dev = {file = ["dev-requirements.txt"]}
+optional = {file = ["optional-requirements.txt"]}
+
+[tool.setuptools.package-data]
+"*" = ["*requirements.txt"]
+data = ["data/*"]
+examples = ["examples/*"]
+helpers = ["helpers/*"]
+tests = ["tests/*"]
+docs = ["docs/*"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["*.DS_Store"]
+
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"

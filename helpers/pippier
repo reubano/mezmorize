@@ -1,8 +1,0 @@
-#!/usr/bin/env sh -u
-#
-
-while read line; do
-  if [[ $line != pylibmc* ]]; then
-    helpers/pippy "$line"
-  fi
-done < $1
