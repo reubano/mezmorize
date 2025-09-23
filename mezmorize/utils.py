@@ -13,6 +13,7 @@ from subprocess import call, DEVNULL
 from copy import copy
 from pickle import DEFAULT_PROTOCOL
 from functools import wraps
+from typing import Optional
 
 try:
     import pylibmc
@@ -104,6 +105,17 @@ def pgrep(process):
 HAS_MEMCACHE = (pylibmc or pymemcache or bmemcached) and pgrep('memcache')
 AVAIL_MEMCACHES = [k for k, v in ALL_MEMCACHES if HAS_MEMCACHE and v]
 HAS_REDIS = redis and pgrep('redis')
+
+
+def parse_verbosity(verbose=0, quiet: Optional[bool] = None):
+    if quiet:
+        verbosity = "0"
+    elif verbose:
+        verbosity = str(verbose)
+    else:
+        verbosity = ""
+
+    return verbosity
 
 
 def get_cache_type(cache=None, spread=False, cache_dir=CACHE_DIR, **kwargs):

@@ -27,12 +27,6 @@ from .utils import (
     get_cache_type)
 
 __version__ = '0.28.2'
-__title__ = 'mezmorize'
-__package_name__ = 'mezmorize'
-__author__ = 'Reuben Cummings'
-__description__ = 'Adds function memoization support'
-__email__ = 'reubano@gmail.com'
-__license__ = 'BSD'
 __copyright__ = 'Copyright 2015 Reuben Cummings'
 
 # Used to remove control characters and whitespace from cache keys.
