@@ -31,7 +31,7 @@ from .utils import (
     get_cache_type,
 )
 
-__version__ = "0.28.2"
+__version__ = "0.29.0"
 __copyright__ = "Copyright 2015 Reuben Cummings"
 
 
