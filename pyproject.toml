@@ -1,6 +1,6 @@
 [project]
 name = "mezmorize"
-requires-python = ">=3.11.7"
+requires-python = ">=3.10.14"
 authors = [
   {name = "Reuben Cummings", email = "reubano@gmail.com"}
 ]

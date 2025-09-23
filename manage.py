@@ -113,7 +113,6 @@ def require():
 @click.option("-f", "--failed", help="Run failed tests", is_flag=True)
 @click.option("-c", "--cover", help="Add coverage report", is_flag=True)
 @click.option("-t", "--tox", help="Run tox tests", is_flag=True)
-@click.option("-d", "--detox", help="Run detox tests", is_flag=True)
 @click.option("-v", "--verbose", help="Use detailed errors", is_flag=True)
 @click.option(
     "-p", "--parallel", help="Run tests in parallel in multiple processes", is_flag=True
@@ -129,9 +128,7 @@ def test(source=None, where=None, stop=False, **kwargs):
 
     try:
         if kwargs.get("tox"):
-            check_call("tox")
-        elif kwargs.get("detox"):
-            check_call("detox")
+            check_call(["tox", "-p"] if kwargs.get("parallel") else "tox")
         else:
             check_call(("pytest %s" % opts).split(" "))
     except CalledProcessError as e:
