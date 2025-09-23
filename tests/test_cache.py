@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 # vim: sw=4:ts=4:expandtab
 """
-    tests.test_cache
-    ~~~~~~~~~~~~~~~~
+tests.test_cache
+~~~~~~~~~~~~~~~~
 
-    Provides unit tests.
+Provides unit tests.
 """
+
 import time
 import random
 import pytest
@@ -14,21 +15,27 @@ from mezmorize import Cache, function_namespace
 from mezmorize.utils import HAS_MEMCACHE, HAS_REDIS, get_cache_config
 
 from mezmorize.backends import (
-    SimpleCache, FileSystemCache, RedisCache, MemcachedCache,
-    SASLMemcachedCache, SpreadSASLMemcachedCache, AVAIL_MEMCACHES)
+    SimpleCache,
+    FileSystemCache,
+    RedisCache,
+    MemcachedCache,
+    SASLMemcachedCache,
+    SpreadSASLMemcachedCache,
+    AVAIL_MEMCACHES,
+)
 
-BIGINT = 2 ** 21
-BIGGERINT = 2 ** 28
+BIGINT = 2**21
+BIGGERINT = 2**28
 
 
 def setup_func(*args, **kwargs):
-    namespace = kwargs.pop('namespace', None)
-    client_name = kwargs.pop('client_name', None)
+    namespace = kwargs.pop("namespace", None)
+    client_name = kwargs.pop("client_name", None)
 
     if client_name:
-        CACHE_OPTIONS = kwargs.get('CACHE_OPTIONS', {})
-        CACHE_OPTIONS['preferred_memcache'] = client_name
-        kwargs['CACHE_OPTIONS'] = CACHE_OPTIONS
+        CACHE_OPTIONS = kwargs.get("CACHE_OPTIONS", {})
+        CACHE_OPTIONS["preferred_memcache"] = client_name
+        kwargs["CACHE_OPTIONS"] = CACHE_OPTIONS
 
     config = get_cache_config(*args, **kwargs)
     cache = Cache(namespace=namespace, **config)
@@ -36,7 +43,7 @@ def setup_func(*args, **kwargs):
 
 
 def check_cache_type(cache, cache_type):
-    assert cache.config['CACHE_TYPE'] == cache_type
+    assert cache.config["CACHE_TYPE"] == cache_type
 
 
 def check_cache_instance(cache, cache_instance):
@@ -50,12 +57,12 @@ def check_client_name(cache, expected):
 def check_too_big(cache, times, error=None):
     if cache.cache.TooBig:
         with pytest.raises(error or cache.cache.TooBig):
-            cache.set('big', 'a' * times)
+            cache.set("big", "a" * times)
 
-        assert cache.get('big') is None
+        assert cache.get("big") is None
     else:
-        cache.set('big', 'a' * times)
-        assert cache.get('big') == 'a' * times
+        cache.set("big", "a" * times)
+        assert cache.get("big") == "a" * times
 
 
 def check_set_delete(cache, key, value, multiplier=None):
@@ -70,7 +77,7 @@ def check_set_delete(cache, key, value, multiplier=None):
 
 
 class CacheClient:
-    def __init__(self, cache_type='simple', **kwargs):
+    def __init__(self, cache_type="simple", **kwargs):
         self.cache = setup_func(cache_type, **kwargs)
 
     def clear_cache(self):
@@ -93,91 +100,91 @@ def timeout_client():
 
 @pytest.fixture
 def namespace_client():
-    client = CacheClient(namespace='https://github.com/reubano/mezmorize')
+    client = CacheClient(namespace="https://github.com/reubano/mezmorize")
     yield client
     client.clear_cache()
 
 
 @pytest.fixture
 def fs_client():
-    client = CacheClient('filesystem', CACHE_DIR='/tmp')
+    client = CacheClient("filesystem", CACHE_DIR="/tmp")
     yield client
     client.clear_cache()
 
 
 @pytest.fixture(params=AVAIL_MEMCACHES)
 def memcached_client(request):
-    client = CacheClient('memcached', client_name=request.param)
+    client = CacheClient("memcached", client_name=request.param)
     yield client
     client.clear_cache()
 
 
 @pytest.fixture(params=AVAIL_MEMCACHES)
 def saslmemcached_client(request):
-    client = CacheClient('saslmemcached', client_name=request.param)
+    client = CacheClient("saslmemcached", client_name=request.param)
     yield client
     client.clear_cache()
 
 
 @pytest.fixture(params=AVAIL_MEMCACHES)
 def spreadsaslmemcached_client(request):
-    client = CacheClient('spreadsaslmemcached', client_name=request.param)
+    client = CacheClient("spreadsaslmemcached", client_name=request.param)
     yield client
     client.clear_cache()
 
 
 @pytest.fixture
 def redis_client():
-    client = CacheClient('redis', db=0)
+    client = CacheClient("redis", db=0)
     yield client
     client.clear_cache()
 
 
 @pytest.fixture
 def redis_custom_client():
-    client = CacheClient('redis', db=2)
+    client = CacheClient("redis", db=2)
     yield client
     client.clear_cache()
 
 
 class TestCache:
     def test_dict_config(self, simple_client):
-        check_cache_type(simple_client.cache, 'simple')
+        check_cache_type(simple_client.cache, "simple")
         check_cache_instance(simple_client.cache, SimpleCache)
 
     def test_000_set(self, simple_client):
-        simple_client.cache.set('hi', 'hello')
-        assert simple_client.cache.get('hi') == 'hello'
+        simple_client.cache.set("hi", "hello")
+        assert simple_client.cache.get("hi") == "hello"
 
     def test_add(self, simple_client):
-        simple_client.cache.add('hi', 'hello')
-        assert simple_client.cache.get('hi') == 'hello'
+        simple_client.cache.add("hi", "hello")
+        assert simple_client.cache.get("hi") == "hello"
 
-        simple_client.cache.add('hi', 'foobar')
-        assert simple_client.cache.get('hi') == 'hello'
+        simple_client.cache.add("hi", "foobar")
+        assert simple_client.cache.get("hi") == "hello"
 
     def test_add_unicode(self, simple_client):
-        simple_client.cache.add('ȟį', 'ƕɛĺłö')
-        assert simple_client.cache.get('ȟį') == 'ƕɛĺłö'
+        simple_client.cache.add("ȟį", "ƕɛĺłö")
+        assert simple_client.cache.get("ȟį") == "ƕɛĺłö"
 
-        simple_client.cache.add('ȟį', 'fööƀåř')
-        assert simple_client.cache.get('ȟį') == 'ƕɛĺłö'
+        simple_client.cache.add("ȟį", "fööƀåř")
+        assert simple_client.cache.get("ȟį") == "ƕɛĺłö"
 
     def test_add_bytes(self, simple_client):
-        simple_client.cache.add(b'hi', b'hello')
-        assert simple_client.cache.get(b'hi') == b'hello'
+        simple_client.cache.add(b"hi", b"hello")
+        assert simple_client.cache.get(b"hi") == b"hello"
 
-        simple_client.cache.add(b'hi', b'foobar')
-        assert simple_client.cache.get(b'hi') == b'hello'
+        simple_client.cache.add(b"hi", b"foobar")
+        assert simple_client.cache.get(b"hi") == b"hello"
 
     def test_delete(self, simple_client):
-        check_set_delete(simple_client.cache, 'hi', 'hello')
+        check_set_delete(simple_client.cache, "hi", "hello")
 
     def test_delete_unicode(self, simple_client):
-        check_set_delete(simple_client.cache, 'ȟį', 'ƕɛĺłö')
+        check_set_delete(simple_client.cache, "ȟį", "ƕɛĺłö")
 
     def test_delete_bytes(self, simple_client):
-        check_set_delete(simple_client.cache, b'hi', b'foobar')
+        check_set_delete(simple_client.cache, b"hi", b"foobar")
 
     def test_memoize(self, simple_client):
         @simple_client.cache.memoize(5)
@@ -281,14 +288,14 @@ class TestCache:
         def func(a, b=None):
             return a + sum(b.values()) + random.randrange(0, 100000)
 
-        result_a = func(1, {'one': 1, 'two': 2})
-        result_b = func(5, {'three': 3, 'four': 4})
-        assert func(1, {'one': 1, 'two': 2}) == result_a
-        assert func(5, {'three': 3, 'four': 4}) == result_b
+        result_a = func(1, {"one": 1, "two": 2})
+        result_b = func(5, {"three": 3, "four": 4})
+        assert func(1, {"one": 1, "two": 2}) == result_a
+        assert func(5, {"three": 3, "four": 4}) == result_b
 
-        simple_client.cache.delete_memoized(func, 1, {'one': 1, 'two': 2})
-        assert func(1, {'one': 1, 'two': 2}) != result_a
-        assert func(5, {'three': 3, 'four': 4}) == result_b
+        simple_client.cache.delete_memoized(func, 1, {"one": 1, "two": 2})
+        assert func(1, {"one": 1, "two": 2}) != result_a
+        assert func(5, {"three": 3, "four": 4}) == result_b
 
     def test_kwargonly(self, simple_client):
         @simple_client.cache.memoize()
@@ -438,8 +445,7 @@ class TestCache:
         result_b = func([5, 3, 2], [1], c=[3, 3], d=[3, 3])
         assert result_a != result_b
 
-        simple_client.cache.delete_memoized(
-            func, [5, 3, 2], b=[1], c=[3, 3], d=[3, 3])
+        simple_client.cache.delete_memoized(func, [5, 3, 2], b=[1], c=[3, 3], d=[3, 3])
         result_b = func([5, 3, 2], [1], c=[3, 3], d=[3, 3])
         assert result_a != result_b
 
@@ -447,8 +453,7 @@ class TestCache:
         result_a = func([5, 3, 2], [1], c=[3, 3], d=[3, 3])
         assert result_a != result_b
 
-        simple_client.cache.delete_memoized(
-            func, [5, 3, 2], b=[1], c=[3, 3], d=[3, 3])
+        simple_client.cache.delete_memoized(func, [5, 3, 2], b=[1], c=[3, 3], d=[3, 3])
         result_a = func([5, 3, 2], [1], c=[3, 3], d=[3, 3])
         assert result_a != result_b
 
@@ -464,21 +469,21 @@ class TestCache:
         def func(a, b, c=None, d=None):
             return sum(a) + sum(b) + random.randrange(0, 100000)
 
-        expected = (1, 2, 'foo', 'bar')
+        expected = (1, 2, "foo", "bar")
 
-        args = simple_client.cache._gen_args(func, 1, 2, 'foo', 'bar')
+        args = simple_client.cache._gen_args(func, 1, 2, "foo", "bar")
         assert tuple(args) == expected
 
-        args = simple_client.cache._gen_args(func, 2, 'foo', 'bar', a=1)
+        args = simple_client.cache._gen_args(func, 2, "foo", "bar", a=1)
         assert tuple(args) == expected
 
-        args = simple_client.cache._gen_args(func, a=1, b=2, c='foo', d='bar')
+        args = simple_client.cache._gen_args(func, a=1, b=2, c="foo", d="bar")
         assert tuple(args) == expected
 
-        args = simple_client.cache._gen_args(func, d='bar', b=2, a=1, c='foo')
+        args = simple_client.cache._gen_args(func, d="bar", b=2, a=1, c="foo")
         assert tuple(args) == expected
 
-        args = simple_client.cache._gen_args(func, 1, 2, d='bar', c='foo')
+        args = simple_client.cache._gen_args(func, 1, 2, d="bar", c="foo")
         assert tuple(args) == expected
 
 
@@ -487,7 +492,7 @@ class TestNSCache(object):
         def func(a, b):
             return a + b + random.randrange(0, 100000)
 
-        cache = setup_func('simple', namespace=namespace_client.cache.namespace)
+        cache = setup_func("simple", namespace=namespace_client.cache.namespace)
         cache_key1 = namespace_client.cache._memoize_make_cache_key()(func)
         cache_key2 = cache._memoize_make_cache_key()(func)
         assert cache_key1 == cache_key2
@@ -495,18 +500,19 @@ class TestNSCache(object):
 
 class TestFileSystemCache(TestCache):
     def test_dict_config(self, fs_client):
-        check_cache_type(fs_client.cache, 'filesystem')
+        check_cache_type(fs_client.cache, "filesystem")
         check_cache_instance(fs_client.cache, FileSystemCache)
 
     def test_add_bytes(self, fs_client):
-        fs_client.cache.add(b'hi', 'hello')
-        assert fs_client.cache.get(b'hi') == 'hello'
+        fs_client.cache.add(b"hi", "hello")
+        assert fs_client.cache.get(b"hi") == "hello"
 
-        fs_client.cache.add(b'hi', b'foobar')
-        assert fs_client.cache.get(b'hi') == 'hello'
+        fs_client.cache.add(b"hi", b"foobar")
+        assert fs_client.cache.get(b"hi") == "hello"
 
 
 if HAS_MEMCACHE:
+
     class TestMemcachedCache(TestCache):
         def test_dict_config(self, memcached_client):
             check_cache_type(memcached_client.cache, "memcached")
@@ -516,9 +522,10 @@ if HAS_MEMCACHE:
         def test_mc_large_value(self, memcached_client):
             check_too_big(memcached_client.cache, BIGGERINT)
 else:
-    print('TestMemcachedCache requires Memcache')
+    print("TestMemcachedCache requires Memcache")
 
 if HAS_MEMCACHE:
+
     class TestSASLMemcachedCache(TestCache):
         def test_dict_config(self, saslmemcached_client):
             check_cache_type(saslmemcached_client.cache, "saslmemcached")
@@ -528,9 +535,10 @@ if HAS_MEMCACHE:
             check_too_big(saslmemcached_client.cache, BIGGERINT)
 
 else:
-    print('TestSASLMemcachedCache requires Memcache')
+    print("TestSASLMemcachedCache requires Memcache")
 
 if HAS_MEMCACHE:
+
     class TestSpreadSASLMemcachedCache(TestCache):
         def test_dict_config(self, spreadsaslmemcached_client):
             cache_instance = SpreadSASLMemcachedCache
@@ -543,12 +551,13 @@ if HAS_MEMCACHE:
             check_set_delete(spreadsaslmemcached_client.cache, b"big", b"a", BIGINT)
             check_too_big(spreadsaslmemcached_client.cache, BIGGERINT, ValueError)
 else:
-    print('TestSpreadSASLMemcachedCache requires Memcache')
+    print("TestSpreadSASLMemcachedCache requires Memcache")
 
 if HAS_REDIS:
+
     class TestRedisCache(TestCache):
         def test_dict_config(self, redis_client):
-            check_cache_type(redis_client.cache, 'redis')
+            check_cache_type(redis_client.cache, "redis")
             check_cache_instance(redis_client.cache, RedisCache)
 
         def test_add_bytes(self, redis_client):
@@ -559,15 +568,15 @@ if HAS_REDIS:
 
         def test_redis_url_default_db(self, redis_client):
             client = redis_client.cache.cache._client
-            rconn = client.connection_pool.get_connection('foo')
+            rconn = client.connection_pool.get_connection("foo")
             assert rconn.db == 0
 
         def test_redis_url_custom_db(self, redis_custom_client):
             client = redis_client.cache.cache._client
-            rconn = client.connection_pool.get_connection('foo')
+            rconn = client.connection_pool.get_connection("foo")
             assert rconn.db == 2
 else:
-    print('TestRedisCache requires Redis')
+    print("TestRedisCache requires Redis")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pytest.main()

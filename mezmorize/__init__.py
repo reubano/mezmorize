@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # vim: sw=4:ts=4:expandtab
 """
-    mezmorize
-    ~~~~~~~~~
+mezmorize
+~~~~~~~~~
 
-    Adds function memoization support
+Adds function memoization support
 """
 # pylint: disable=W1636,W1637,W1638,W1639
 
@@ -23,23 +23,31 @@ from cachelib.memcached import _test_memcached_key
 
 from . import backends
 from .utils import (
-    DEF_THRESHOLD, DEF_DEFAULT_TIMEOUT, ENCODING, decode, get_cache_config,
-    get_cache_type)
+    DEF_THRESHOLD,
+    DEF_DEFAULT_TIMEOUT,
+    ENCODING,
+    decode,
+    get_cache_config,
+    get_cache_type,
+)
 
-__version__ = '0.28.2'
-__copyright__ = 'Copyright 2015 Reuben Cummings'
+__version__ = "0.28.2"
+__copyright__ = "Copyright 2015 Reuben Cummings"
+
 
 # Used to remove control characters and whitespace from cache keys.
-is_invalid = lambda c: not (c in {'_', '.'} or c.isalnum())
-delchars = filter(is_invalid, map(chr, range(256)))
+def is_invalid(char):
+    return not (char in {"_", "."} or char.isalnum())
 
-trans_tbl = ''.maketrans({k: None for k in delchars})
+
+delchars = filter(is_invalid, map(chr, range(256)))
+trans_tbl = "".maketrans({k: None for k in delchars})
 NULL_CONTROL = (trans_tbl,)
 FIRST_NC = NULL_CONTROL[0]
 
 
 def get_namespace(*names):
-    text = '.'.join(map(decode, names))
+    text = ".".join(map(decode, names))
 
     if FIRST_NC:
         namespace = text.translate(FIRST_NC)
@@ -55,11 +63,11 @@ def function_namespace(f, *args):
     Attempts to returns unique a namespace for a function
     """
     m_args = getfullargspec(f).args
-    m_arg = m_args[0] if args and m_args else ''
+    m_arg = m_args[0] if args and m_args else ""
     arg = args[0] if args else None
-    self_instance = getattr(f, '__self__', None)
+    self_instance = getattr(f, "__self__", None)
     not_class = self_instance and not inspect.isclass(self_instance)
-    is_self = m_arg == 'self'
+    is_self = m_arg == "self"
 
     try:
         name = f.__qualname__
@@ -67,14 +75,14 @@ def function_namespace(f, *args):
         klass = self_instance.__class__ if not_class else self_instance
 
         if not klass:
-            klass = getattr(f, 'im_class', None)
+            klass = getattr(f, "im_class", None)
 
         if not klass and is_self:
             klass = arg.__class__
-        elif not klass and m_arg == 'cls':
+        elif not klass and m_arg == "cls":
             klass = arg
 
-        name = '.'.join(n.__name__ for n in (klass, f) if n)
+        name = ".".join(n.__name__ for n in (klass, f) if n)
 
     module = f.__module__
     ns = get_namespace(module, name)
@@ -92,50 +100,50 @@ class Cache(object):
     """
     This class is used to control the cache objects.
     """
+
     def __init__(self, namespace=None, **config):
-        config.setdefault('CACHE_DEFAULT_TIMEOUT', DEF_DEFAULT_TIMEOUT)
-        config.setdefault('CACHE_THRESHOLD', DEF_THRESHOLD)
-        config.setdefault('CACHE_KEY_PREFIX', 'mezmorize_')
-        config.setdefault('CACHE_MEMCACHED_SERVERS', None)
-        config.setdefault('CACHE_DIR', None)
-        config.setdefault('CACHE_OPTIONS', {})
-        config.setdefault('CACHE_ARGS', [])
-        config.setdefault('CACHE_TYPE', 'simple')
-        config.setdefault('CACHE_NO_NULL_WARNING', False)
+        config.setdefault("CACHE_DEFAULT_TIMEOUT", DEF_DEFAULT_TIMEOUT)
+        config.setdefault("CACHE_THRESHOLD", DEF_THRESHOLD)
+        config.setdefault("CACHE_KEY_PREFIX", "mezmorize_")
+        config.setdefault("CACHE_MEMCACHED_SERVERS", None)
+        config.setdefault("CACHE_DIR", None)
+        config.setdefault("CACHE_OPTIONS", {})
+        config.setdefault("CACHE_ARGS", [])
+        config.setdefault("CACHE_TYPE", "simple")
+        config.setdefault("CACHE_NO_NULL_WARNING", False)
 
-        warning = not config['CACHE_NO_NULL_WARNING']
+        warning = not config["CACHE_NO_NULL_WARNING"]
 
-        if config['CACHE_TYPE'] == 'null' and warning:
-            warnings.warn(
-                'CACHE_TYPE is set to null, caching is effectively disabled.')
+        if config["CACHE_TYPE"] == "null" and warning:
+            warnings.warn("CACHE_TYPE is set to null, caching is effectively disabled.")
 
-        self.namespace = str(namespace or '')
+        self.namespace = str(namespace or "")
         self.config = config
         self._set_cache()
 
     def _set_cache(self):
-        module_string = self.config['CACHE_TYPE']
-        default_timeout = self.config['CACHE_DEFAULT_TIMEOUT']
+        module_string = self.config["CACHE_TYPE"]
+        default_timeout = self.config["CACHE_DEFAULT_TIMEOUT"]
 
-        if '.' not in module_string:
+        if "." not in module_string:
             try:
                 cache_obj = getattr(backends, module_string)
             except AttributeError:
-                msg = '{} is not a valid Mezmorize backend'
+                msg = "{} is not a valid Mezmorize backend"
                 raise ImportError(msg.format(module_string))
         else:
             cache_obj = import_module(module_string)
 
         self.cache_type = cache_obj.__name__
-        self.is_memcached = 'memcache' in self.cache_type
+        self.is_memcached = "memcache" in self.cache_type
 
-        args = self.config['CACHE_ARGS']
-        kwargs = self.config['CACHE_OPTIONS']
-        kwargs.setdefault('default_timeout', default_timeout)
+        args = self.config["CACHE_ARGS"]
+        kwargs = self.config["CACHE_OPTIONS"]
+        kwargs.setdefault("default_timeout", default_timeout)
 
         if not self.is_memcached:
-            kwargs.pop('preferred_memcache', None)
-            kwargs.pop('connect_timeout', None)
+            kwargs.pop("preferred_memcache", None)
+            kwargs.pop("connect_timeout", None)
 
         self.cache = cache_obj(self.config, *args, **kwargs)
 
@@ -201,10 +209,10 @@ class Cache(object):
         self.cache.set_many(*args, **kwargs)
 
     def _memvname(self, funcname):
-        return funcname + '_memver'
+        return funcname + "_memver"
 
     def _memoize_make_version_hash(self):
-        if self.namespace.startswith('http'):
+        if self.namespace.startswith("http"):
             UUID = uuid.uuid3(uuid.NAMESPACE_URL, self.namespace)
         if self.namespace:
             UUID = uuid.uuid3(uuid.NAMESPACE_DNS, self.namespace)
@@ -217,8 +225,8 @@ class Cache(object):
         """
         Updates the hash version associated with a memoized function or method.
         """
-        reset = kwargs.pop('reset', None)
-        delete = kwargs.pop('delete', None)
+        reset = kwargs.pop("reset", None)
+        delete = kwargs.pop("delete", None)
         fname, instance_fname = function_namespace(f, *args)
         version_key = self._memvname(fname)
 
@@ -255,14 +263,15 @@ class Cache(object):
             zipped = zip(fetch_keys, version_data_list)
             self.cache.set_many(dict(zipped), **kwargs)
 
-        return fname, ''.join(map(decode, version_data_list))
+        return fname, "".join(map(decode, version_data_list))
 
     def _memoize_make_cache_key(self, make_name=None, decorated=None):
         """
         Function used to create the cache_key for memoized functions.
         """
+
         def make_cache_key(f, *args, **kwargs):
-            mkwargs = {'timeout': decorated.cache_timeout} if decorated else {}
+            mkwargs = {"timeout": decorated.cache_timeout} if decorated else {}
             fname, version_data = self._memoize_version(f, *args, **mkwargs)
 
             # this should have to be after version_data, so that it
@@ -275,7 +284,7 @@ class Cache(object):
             else:
                 keyargs, keykwargs = args, kwargs
 
-            updated = '{0}{1}{2}'.format(altfname, keyargs, keykwargs)
+            updated = "{0}{1}{2}".format(altfname, keyargs, keykwargs)
             cache_key = hashlib.md5()
             cache_key.update(updated.encode(ENCODING))
             cache_key = base64.b64encode(cache_key.digest())[:16]
@@ -283,6 +292,7 @@ class Cache(object):
             cache_key += version_data
 
             return cache_key
+
         return make_cache_key
 
     def _gen_args(self, f, *args, **kwargs):
@@ -301,7 +311,7 @@ class Cache(object):
             # Subtract from i, m_args that aren't in args
             arg_num = i - counter
 
-            if not i and m_arg in ('self', 'cls'):
+            if not i and m_arg in ("self", "cls"):
                 # supports instance methods for the memoized functions
                 new_arg = repr(args[0])
             elif kwargs.get(m_arg) is not None:
@@ -386,7 +396,7 @@ class Cache(object):
 
                 if value is None:
                     value = f(*args, **kwargs)
-                    ckwargs = {'timeout': decorated.cache_timeout}
+                    ckwargs = {"timeout": decorated.cache_timeout}
 
                     # value is first for addCallback compatibility
                     def set_cache(value, key):
@@ -521,7 +531,8 @@ class Cache(object):
         if not callable(f):
             raise DeprecationWarning(
                 "Deleting messages by relative name is no longer"
-                " reliable, please switch to a function reference")
+                " reliable, please switch to a function reference"
+            )
 
         if not (args or kwargs):
             self._memoize_version(f, reset=True)
@@ -544,7 +555,8 @@ class Cache(object):
         if not callable(f):
             raise DeprecationWarning(
                 "Deleting messages by relative name is no longer"
-                " reliable, please use a function reference")
+                " reliable, please use a function reference"
+            )
 
         self._memoize_version(f, delete=True)
 
@@ -613,22 +625,26 @@ def get_cache(*args, **kwargs):
         ...     cache.client_name is None
         True
     """
-    _cache_type = kwargs.get('cache_type')
-    spread = kwargs.get('spread')
-    namespace = kwargs.get('namespace')
+    _cache_type = kwargs.get("cache_type")
+    spread = kwargs.get("spread")
+    namespace = kwargs.get("namespace")
     whitelist = {
-        'cache_default_timeout', 'cache_threshold', 'cache_options',
-        'cache_key_prefix', 'self_signed_certs'}
+        "cache_default_timeout",
+        "cache_threshold",
+        "cache_options",
+        "cache_key_prefix",
+        "self_signed_certs",
+    }
 
     ckwargs = {k.upper(): v for k, v in kwargs.items() if k in whitelist}
 
-    keys = {'preferred_memcache', 'connect_timeout'}
+    keys = {"preferred_memcache", "connect_timeout"}
     extra_options = {k: v for k, v in kwargs.items() if k in keys}
 
     if extra_options:
-        CACHE_OPTIONS = ckwargs.get('CACHE_OPTIONS', {})
+        CACHE_OPTIONS = ckwargs.get("CACHE_OPTIONS", {})
         CACHE_OPTIONS.update(extra_options)
-        ckwargs['CACHE_OPTIONS'] = CACHE_OPTIONS
+        ckwargs["CACHE_OPTIONS"] = CACHE_OPTIONS
 
     cache_type = get_cache_type(cache=_cache_type, spread=spread)
     config = get_cache_config(cache_type, **ckwargs)
@@ -695,7 +711,7 @@ def memoize(*args, **kwargs):
         True
     """
     cache = get_cache(*args, **kwargs)
-    mkwargs = {k: v for k, v in kwargs.items() if k in {'timeout', 'unless'}}
+    mkwargs = {k: v for k, v in kwargs.items() if k in {"timeout", "unless"}}
     memoizer = cache.memoize(*args, **mkwargs)
     memoizer.cache_type = cache.cache_type
     memoizer.client_name = cache.client_name
