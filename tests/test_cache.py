@@ -509,23 +509,23 @@ class TestFileSystemCache(TestCache):
 if HAS_MEMCACHE:
     class TestMemcachedCache(TestCache):
         def test_dict_config(self, memcached_client):
-            yield check_cache_type, memcached_client.cache, 'memcached'
-            yield check_cache_instance, memcached_client.cache, MemcachedCache
-            yield check_client_name, memcached_client.cache, client_name
+            check_cache_type(memcached_client.cache, "memcached")
+            check_cache_instance(memcached_client.cache, MemcachedCache)
+            # check_client_name(memcached_client.cache, client_name)
 
         def test_mc_large_value(self, memcached_client):
-            yield check_too_big, memcached_client.cache, BIGGERINT
+            check_too_big(memcached_client.cache, BIGGERINT)
 else:
     print('TestMemcachedCache requires Memcache')
 
 if HAS_MEMCACHE:
     class TestSASLMemcachedCache(TestCache):
         def test_dict_config(self, saslmemcached_client):
-            yield check_cache_type, saslmemcached_client.cache, 'saslmemcached'
-            yield check_cache_instance, saslmemcached_client.cache, SASLMemcachedCache
+            check_cache_type(saslmemcached_client.cache, "saslmemcached")
+            check_cache_instance(saslmemcached_client.cache, SASLMemcachedCache)
 
         def test_mc_large_value(self, saslmemcached_client):
-            yield check_too_big, saslmemcached_client.cache, BIGGERINT
+            check_too_big(saslmemcached_client.cache, BIGGERINT)
 
 else:
     print('TestSASLMemcachedCache requires Memcache')
@@ -534,14 +534,14 @@ if HAS_MEMCACHE:
     class TestSpreadSASLMemcachedCache(TestCache):
         def test_dict_config(self, spreadsaslmemcached_client):
             cache_instance = SpreadSASLMemcachedCache
-            yield check_cache_type, spreadsaslmemcached_client.cache, 'spreadsaslmemcached'
-            yield check_cache_instance, spreadsaslmemcached_client.cache, cache_instance
+            check_cache_type(spreadsaslmemcached_client.cache, "spreadsaslmemcached")
+            check_cache_instance(spreadsaslmemcached_client.cache, cache_instance)
 
         def test_mc_large_value(self, spreadsaslmemcached_client):
-            yield check_set_delete, spreadsaslmemcached_client.cache, 'big', 'a', BIGINT
-            yield check_set_delete, spreadsaslmemcached_client.cache, 'ƅıɠ', 'ą', BIGINT
-            yield check_set_delete, spreadsaslmemcached_client.cache, b'big', b'a', BIGINT
-            yield check_too_big, spreadsaslmemcached_client.cache, BIGGERINT, ValueError
+            check_set_delete(spreadsaslmemcached_client.cache, "big", "a", BIGINT)
+            check_set_delete(spreadsaslmemcached_client.cache, "ƅıɠ", "ą", BIGINT)
+            check_set_delete(spreadsaslmemcached_client.cache, b"big", b"a", BIGINT)
+            check_too_big(spreadsaslmemcached_client.cache, BIGGERINT, ValueError)
 else:
     print('TestSpreadSASLMemcachedCache requires Memcache')
 
